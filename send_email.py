@@ -8,6 +8,7 @@ def send_email(file):
     return requests.post(
         "https://api.mailgun.net/v3/sandbox4285061f779240d7bfe55a39e0e1bda0.mailgun.org/messages",
         auth=("api", API),
+        files=[("attachment", (file, open(file, "rb").read()))],
         data={"from": "SERP Extractor <mailgun@sandbox4285061f779240d7bfe55a39e0e1bda0.mailgun.org>",
               "to": ["amartyazzz@gmail.com"],
               "subject": "SERP ALERT",
