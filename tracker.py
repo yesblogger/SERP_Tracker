@@ -1,41 +1,55 @@
 from datetime import date
-from send_email import send_email
-from data import search_api, load_keywords
+from data import search_api_key, load_keywords
+from location import geo_code
 import requests
 import csv
-from os import path
 
-SERP_API = search_api()
+# GLOBAL VARIABLES
+SERP_API = search_api_key()
 
-KEYWORDS = load_keywords()
-# Enter the Domain that you want to track without http:// or www
-IDENTIFIER = "motadata.com"
+KEYWORDS = load_keywords()  # points a list of keywords to the variable
 
-dataset = []
+DATASET = []
+
+IDENTIFIER = None
+
+LOCATION = None
+
+# FUNCTIONS
 
 
 def main():
+    global IDENTIFIER, LOCATION
+    # Setting the remaining two global variables
+    IDENTIFIER = input(
+        "Enter the Domain that you want to track; e.g. domain.com: ").strip()
+    while True:
+        LOCATION = geo_code(input("Enter Country for the SERP: ").strip())
+        if LOCATION != "":
+            break
+    # Fetching the SERP data
     for key in KEYWORDS:
         tracker(key.strip())
-    if len(dataset):
+    # writing SERP data into a csv file
+    if len(DATASET):
         filename = f"SERP_Rank_Report_{date.today().__str__()}.csv"
         with open(filename, mode='w', newline='', encoding='utf-8') as w_file:
-            header = dataset[0].keys()
+            header = DATASET[0].keys()
             writer = csv.DictWriter(w_file, fieldnames=header)
             writer.writeheader()
-            writer.writerows(dataset)
-    if path.isfile(filename):
-        print(send_email(filename))
+            writer.writerows(DATASET)
 
 
 def tracker(keyword):
+    # Setting parameters for API call
     params = {
         'access_key': SERP_API,
         'query': keyword,
         "num": 100,
-        "gl": 'in'
+        "gl": LOCATION
     }
 
+    # feting json content from the api
     api_response = requests.get(
         'http://api.serpstack.com/search', params=params).json()
 
@@ -44,16 +58,18 @@ def tracker(keyword):
 
             try:
                 if IDENTIFIER in obj['domain']:
-                    dataset.append({
+                    DATASET.append({
                         'Keyword': keyword,
                         'Position': obj['position'],
                         'Title': obj['title'],
                         'URL': obj['url']
                     })
+                    break
             except:
                 print(f"Error in Fetching data for {keyword}")
                 continue
     except:
+        # if SERP data is not returned then it will give response error
         print("Response Error")
 
 
