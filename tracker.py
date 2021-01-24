@@ -5,7 +5,11 @@ import requests
 import csv
 
 # GLOBAL VARIABLES
-SERP_API = search_api_key()
+SERP_API_LIST = search_api_key() # list of apis
+
+CALL_COUNTER = len(SERP_API_LIST)
+
+SERP_API = ""
 
 KEYWORDS = load_keywords()  # points a list of keywords to the variable
 
