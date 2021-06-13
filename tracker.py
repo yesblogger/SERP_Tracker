@@ -7,11 +7,11 @@ import csv
 # GLOBAL VARIABLES
 SERP_API_LIST = search_api_key() # list of apis
 
-CALL_COUNTER = len(SERP_API_LIST)
-
-SERP_API = ""
+SERP_API = SERP_API_LIST.pop()
 
 KEYWORDS = load_keywords()  # points a list of keywords to the variable
+
+CALL_LIMIT = 0
 
 DATASET = []
 
@@ -25,15 +25,24 @@ LOCATION = None
 def main():
     global IDENTIFIER, LOCATION
     # Setting the remaining two global variables
+    call = 0
+    # setting the local variable
     IDENTIFIER = input(
         "Enter the Domain that you want to track; e.g. domain.com: ").strip()
+    CALL_LIMIT = int(input('Please enter the call limit for each API: ') or "{}".format(len(KEYWORDS)))
     while True:
         LOCATION = geo_code(input("Enter Country for the SERP: ").strip())
         if LOCATION != "":
             break
     # Fetching the SERP data
     for key in KEYWORDS:
-        tracker(key.strip())
+        if call <= CALL_LIMIT:
+            call += 1
+            tracker(key.strip())
+        else:
+            if len(SERP_API_LIST):
+                call = 0
+                SERP_API = SERP_API_LIST.pop()
     # writing SERP data into a csv file
     if len(DATASET):
         filename = f"SERP_Rank_Report_{date.today().__str__()}.csv"
@@ -53,7 +62,7 @@ def tracker(keyword):
         "gl": LOCATION
     }
 
-    # feting json content from the api
+    # fetching json content from the api
     api_response = requests.get(
         'http://api.serpstack.com/search', params=params).json()
 

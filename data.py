@@ -17,6 +17,6 @@ def load_keywords():
         return keywords  # returns a list of keywords from the file
 
 if __name__ == "__main__":
-    data = load_keywords()
+    data = search_api_key()
     print(data)
-    print(type(data))
+    # print(type(data))
